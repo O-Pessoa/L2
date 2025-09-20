@@ -5,6 +5,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import tmdb.composeapp.generated.resources.Inter_VariableFont
 import tmdb.composeapp.generated.resources.Res
@@ -35,21 +36,21 @@ fun interTypography(): Typography {
     )
     return with(MaterialTheme.typography) {
         copy(
-            displayLarge = displayLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            displayMedium = displayMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            displaySmall = displaySmall.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            headlineLarge = headlineLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            headlineMedium = headlineMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            headlineSmall = headlineSmall.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            titleLarge = titleLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            titleMedium = titleMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            titleSmall = titleSmall.copy(fontFamily = interFont, fontWeight = FontWeight.Bold),
-            labelLarge = labelLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Normal),
-            labelMedium = labelMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Normal),
-            labelSmall = labelSmall.copy(fontFamily = interFont, fontWeight = FontWeight.Normal),
-            bodyLarge = bodyLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Normal),
-            bodyMedium = bodyMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Normal),
-            bodySmall = bodySmall.copy(fontFamily = interFont, fontWeight = FontWeight.Normal)
+            displayLarge = displayLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 57.sp),
+            displayMedium = displayMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 45.sp),
+            displaySmall = displaySmall.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 36.sp),
+            headlineLarge = headlineLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 32.sp),
+            headlineMedium = headlineMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 28.sp),
+            headlineSmall = headlineSmall.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 24.sp),
+            titleLarge = titleLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 24.sp),
+            titleMedium = titleMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 20.sp),
+            titleSmall = titleSmall.copy(fontFamily = interFont, fontWeight = FontWeight.Bold, fontSize = 16.sp),
+            labelLarge = labelLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Normal, fontSize = 16.sp),
+            labelMedium = labelMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Normal, fontSize = 14.sp),
+            labelSmall = labelSmall.copy(fontFamily = interFont, fontWeight = FontWeight.Normal, fontSize = 12.sp),
+            bodyLarge = bodyLarge.copy(fontFamily = interFont, fontWeight = FontWeight.Normal, fontSize = 16.sp),
+            bodyMedium = bodyMedium.copy(fontFamily = interFont, fontWeight = FontWeight.Normal, fontSize = 14.sp),
+            bodySmall = bodySmall.copy(fontFamily = interFont, fontWeight = FontWeight.Normal, fontSize = 12.sp)
         )
     }
 }
