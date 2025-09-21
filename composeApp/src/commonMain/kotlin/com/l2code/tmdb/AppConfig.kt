@@ -4,5 +4,6 @@ package com.l2code.tmdb
 // Mas vou reduzir a complexidade nesse cenário XD
 object AppConfig {
     const val TMDB_BASE_URL = "https://api.themoviedb.org/3/"
+    const val TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"
     const val TMDB_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZDM0MDZmYjEwYWNhMGUwMGI1ZWY3Njc3NDhjNmU2YyIsIm5iZiI6MTcwNzk0MjU5OS4zODMwMDAxLCJzdWIiOiI2NWNkMjJjNzhkMmY4ZDAxODZlYzY5NGIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.4oAGrJfQOmBXf9_b98UukLCWFRvKaFPRH_XdSTeE4nA"
 }
