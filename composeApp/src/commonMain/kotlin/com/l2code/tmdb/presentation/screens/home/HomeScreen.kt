@@ -1,5 +1,6 @@
 package com.l2code.tmdb.presentation.screens.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -26,7 +28,10 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.l2code.tmdb.presentation.components.SearchTextField
 import com.l2code.tmdb.resources.Resources
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import tmdb.composeapp.generated.resources.Res
+import tmdb.composeapp.generated.resources.foto_perfil
 
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController(), viewModel: HomeViewModel = koinViewModel()) {
@@ -110,10 +115,21 @@ fun Header(
             )
             Spacer(modifier = Modifier.width(30.dp))
             Box(
-                modifier = Modifier.size(40.dp).background(Color.White, shape = CircleShape),
+                modifier = Modifier
+                    .size(40.dp)
+                    .aspectRatio(1f)
+                    .background(Color.White, shape = CircleShape),
                 contentAlignment = Alignment.Center,
             ){
-                Box(modifier = Modifier.size(36.dp).background(Color.DarkGray, shape = CircleShape))
+                Image(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(36.dp)
+                        .aspectRatio(1f),
+                    painter = painterResource(Res.drawable.foto_perfil),
+                    contentDescription = Resources.Defaults.DEFAULT_URL_PROFILE,
+                    contentScale = ContentScale.Fit,
+                )
             }
         }
         SearchTextField(

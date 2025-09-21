@@ -17,5 +17,6 @@ internal object Resources {
 
     object Defaults {
         const val DEFAULT_LANGUAGE = "pt-BR"
+        const val DEFAULT_URL_PROFILE = "https://linkedin.com/in/pedro-pessoa-ramos/"
     }
 }
