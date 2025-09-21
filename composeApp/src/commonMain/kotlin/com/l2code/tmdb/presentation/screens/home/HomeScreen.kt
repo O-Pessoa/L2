@@ -1,5 +1,11 @@
 package com.l2code.tmdb.presentation.screens.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,13 +44,13 @@ import tmdb.composeapp.generated.resources.foto_perfil
 fun HomeScreen(navController: NavController = rememberNavController(), viewModel: HomeViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
-    if(uiState.catalogResult is CatalogResult.Error && uiState.catalogResult !== null) {
+    if (uiState.catalogResult is CatalogResult.Error && uiState.catalogResult !== null) {
         AlertDialog(
             onDismissRequest = { viewModel.clearError() },
             title = { Text(text = "Error!") },
             text = { Text(text = uiState.catalogResult?.message ?: Resources.Strings.ERROR_UNKNOWN) },
             confirmButton = {
-                TextButton(onClick = { viewModel.clearError() }){
+                TextButton(onClick = { viewModel.clearError() }) {
                     Text(text = "Ok")
                 }
             }
@@ -72,7 +79,7 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
                     .background(
                         brush = Brush.linearGradient(
                             colorStops = arrayOf(
-                                0.0f to Color(128,0,255),
+                                0.0f to Color(128, 0, 255),
                                 1.0f to Color.Transparent,
                             ),
                             start = Offset.Zero,
@@ -80,16 +87,18 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
                         )
                     )
             )
+            val scrollState = rememberScrollState()
             Column(
-                modifier = Modifier.padding(
-                    top = innerPadding.calculateTopPadding(),
-                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
-                ),
+                modifier = Modifier
+                    .padding(
+                        top = innerPadding.calculateTopPadding(),
+                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+                    ).verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Header(uiState, viewModel::onSearchTextChanged, viewModel::searchMovies)
-                MainContent(uiState, viewModel::loadMovies)
+                MainContent(uiState, viewModel::loadRowMovies)
             }
         }
     }
@@ -101,7 +110,7 @@ fun Header(
     onSearchTextChanged: (String) -> Unit,
     onSearchClick: () -> Unit,
 ) {
-    Column(){
+    Column {
         Row(
             modifier = Modifier
                 .padding(start = 30.dp, end = 30.dp, top = 32.dp, bottom = 16.dp),
@@ -121,7 +130,7 @@ fun Header(
                     .aspectRatio(1f)
                     .background(Color.White, shape = CircleShape),
                 contentAlignment = Alignment.Center,
-            ){
+            ) {
                 Image(
                     modifier = Modifier
                         .clip(CircleShape)
@@ -143,54 +152,69 @@ fun Header(
 }
 
 @Composable
-fun MainContent(uiState: HomeState, loadMovies: (String) -> Unit) {
-    val scrollState = rememberScrollState()
+fun MainContent(uiState: HomeState, loadMovies: (RowMovies) -> Unit) {
     Column(
-        modifier = Modifier
-            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        for (rowMovies in uiState.rowsMovies){
-            Column(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 30.dp, end = 30.dp),
-                    text = rowMovies.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(start = 30.dp, end = 30.dp),
+        uiState.rowsMovies.forEach { rowMovies ->
+            key(rowMovies.title) {
+                AnimatedVisibility(
+                    visible = rowMovies.movies.isNotEmpty(),
+                    enter = fadeIn(
+                        animationSpec = tween(durationMillis = 800)
+                    ) + slideInHorizontally(
+                        animationSpec = tween(durationMillis = 800),
+                        initialOffsetX = { it }
+                    ),
+                    exit = fadeOut(
+                        animationSpec = tween(durationMillis = 300)
+                    ) + slideOutHorizontally(
+                        animationSpec = tween(durationMillis = 300),
+                        targetOffsetX = { it }
+                    )
                 ) {
-                    itemsIndexed(rowMovies.movies) { index, movie ->
-                        if (index >= rowMovies.movies.lastIndex && !uiState.isLoading && rowMovies.hasNextPage) {
-                            loadMovies(rowMovies.title)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillParentMaxWidth(1f/2.5f)
-                                .aspectRatio(2f / 3f)
-                                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                        ) {
-                            AsyncImage(
-                                modifier = Modifier.fillMaxSize(),
-                                model = movie.posterPath,
-                                contentDescription = movie.title,
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-                    }
-                }
-                if(uiState.isLoading && rowMovies.movies.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
+                    Column(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        CircularProgressIndicator()
+                        Text(
+                            modifier = Modifier.padding(start = 30.dp, end = 30.dp),
+                            text = rowMovies.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(start = 30.dp, end = 30.dp),
+                        ) {
+                            itemsIndexed(rowMovies.movies) { index, movie ->
+                                if (index >= rowMovies.movies.lastIndex - 10 && !uiState.isLoading && rowMovies.hasNextPage) {
+                                    loadMovies(rowMovies)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillParentMaxWidth(1f / 2.5f)
+                                        .aspectRatio(2f / 3f)
+                                        .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                                ) {
+                                    AsyncImage(
+                                        modifier = Modifier.fillMaxSize(),
+                                        model = movie.posterPath,
+                                        contentDescription = movie.title,
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                }
+                            }
+                        }
+                        if (uiState.isLoading && rowMovies.movies.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                 }
             }

@@ -7,6 +7,7 @@ import com.l2code.tmdb.data.movie.MovieListFilters
 import com.l2code.tmdb.data.movie.MovieRepository
 import com.l2code.tmdb.entities.Movie
 import com.l2code.tmdb.resources.Resources
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,41 +70,37 @@ class HomeViewModel(
         loadMovies()
     }
 
-    private suspend fun loadRowMovies(rowMovies: RowMovies) {
-        if(rowMovies.movies.isNotEmpty() && !rowMovies.hasNextPage) return
-        val newMovies = rowMovies.load(MovieListFilters(page = rowMovies.page + 1, query = _uiState.value.textSearchField))
-        _uiState.update {
-            it.copy(
-                rowsMovies = it.rowsMovies.map { row ->
-                    if (row == rowMovies) {
-                        return@map row.copy(
-                            movies = row.movies + newMovies.results,
-                            page = newMovies.page,
-                            hasNextPage = newMovies.page < newMovies.totalPages
-                        )
-                    }
-                    return@map row
-                },
-                isLoading = false,
-                catalogResult = CatalogResult.Success()
-            )
-        }
-    }
-
-    fun loadMovies(title: String? = null) {
-        if (_uiState.value.isLoading) return
+    fun loadRowMovies(rowMovies: RowMovies) {
+        if (rowMovies.movies.isNotEmpty() && !rowMovies.hasNextPage) return
         this.viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                for (rowMovies in _uiState.value.rowsMovies) {
-                    if (title == null || rowMovies.title == title) {
-                        loadRowMovies(rowMovies)
-                    }
+                val newMovies = rowMovies.load(
+                    MovieListFilters(
+                        page = rowMovies.page + 1,
+                        query = _uiState.value.textSearchField
+                    )
+                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        catalogResult = CatalogResult.Success(),
+                        rowsMovies = it.rowsMovies.map { row ->
+                            if (row == rowMovies) {
+                                return@map row.copy(
+                                    movies = row.movies + newMovies.results,
+                                    page = newMovies.page,
+                                    hasNextPage = newMovies.page < newMovies.totalPages
+                                )
+                            }
+                            return@map row
+                        },
+                    )
                 }
             } catch (_: Exception) {
                 _uiState.update {
                     it.copy(
-                        catalogResult = CatalogResult.Error(Resources.Strings.RESOURCE_NOW_PLAYING_MOVIES),
+                        catalogResult = CatalogResult.Error(rowMovies.title),
                         isLoading = false
                     )
                 }
@@ -111,7 +108,22 @@ class HomeViewModel(
         }
     }
 
+    fun loadMovies() {
+        if (_uiState.value.isLoading) return
+        for (rowMovies in _uiState.value.rowsMovies) {
+            loadRowMovies(rowMovies)
+        }
+    }
+
     fun searchMovies() {
+        val oldSearchMovies = _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_SEARCH_MOVIES }
+        if(oldSearchMovies != null) {
+            _uiState.update { state ->
+                state.copy(
+                    rowsMovies = state.rowsMovies.filter { oldSearchMovies.title != it.title }
+                )
+            }
+        }
         _uiState.update {
             it.copy(
                 rowsMovies = listOf(
@@ -124,7 +136,13 @@ class HomeViewModel(
                 ) + it.rowsMovies,
             )
         }
-        loadMovies(Resources.Strings.RESOURCE_SEARCH_MOVIES)
+        val rowMovies = _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_SEARCH_MOVIES }
+        if(rowMovies == null) return
+        this.viewModelScope.launch {
+            val exitAnimationDuration = 300L
+            delay(exitAnimationDuration)
+            loadRowMovies(rowMovies)
+        }
     }
 
     fun clearError() {
