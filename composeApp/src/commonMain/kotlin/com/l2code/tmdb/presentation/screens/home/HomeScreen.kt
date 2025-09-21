@@ -185,6 +185,14 @@ fun MainContent(uiState: HomeState, loadMovies: (String) -> Unit) {
                         }
                     }
                 }
+                if(uiState.isLoading && rowMovies.movies.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
