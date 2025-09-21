@@ -70,7 +70,8 @@ class HomeViewModel(
     }
 
     private suspend fun loadRowMovies(rowMovies: RowMovies) {
-        val newMovies = rowMovies.load(MovieListFilters(page = rowMovies.page + 1))
+        if(rowMovies.movies.isNotEmpty() && !rowMovies.hasNextPage) return
+        val newMovies = rowMovies.load(MovieListFilters(page = rowMovies.page + 1, query = _uiState.value.textSearchField))
         _uiState.update {
             it.copy(
                 rowsMovies = it.rowsMovies.map { row ->
@@ -108,6 +109,22 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    fun searchMovies() {
+        _uiState.update {
+            it.copy(
+                rowsMovies = listOf(
+                    RowMovies(
+                        title = Resources.Strings.RESOURCE_SEARCH_MOVIES,
+                        page = 0,
+                        hasNextPage = false,
+                        load = movieRepository::searchMovies,
+                    )
+                ) + it.rowsMovies,
+            )
+        }
+        loadMovies(Resources.Strings.RESOURCE_SEARCH_MOVIES)
     }
 
     fun clearError() {

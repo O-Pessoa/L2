@@ -16,7 +16,12 @@ import androidx.compose.ui.unit.dp
 import com.l2code.tmdb.resources.Resources
 
 @Composable
-fun SearchTextField(modifier: Modifier = Modifier, value: String, onValueChange: (String) -> Unit, placeholder: String = Resources.Strings.SEARCH_FIELD_TEXT) {
+fun SearchTextField(
+    modifier: Modifier = Modifier,
+    value: String, onValueChange: (String) -> Unit,
+    placeholder: String = Resources.Strings.SEARCH_FIELD_TEXT,
+    onSearch: () -> Unit,
+) {
     val focusManager = LocalFocusManager.current
     TextField(
         modifier = modifier
@@ -40,7 +45,7 @@ fun SearchTextField(modifier: Modifier = Modifier, value: String, onValueChange:
         shape = RoundedCornerShape(36.dp),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(); onSearch() }),
         placeholder = {
             Text(
                 text = placeholder,

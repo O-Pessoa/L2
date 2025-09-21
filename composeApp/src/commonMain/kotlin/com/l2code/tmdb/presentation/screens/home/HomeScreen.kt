@@ -88,7 +88,7 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Header(uiState, viewModel::onSearchTextChanged)
+                Header(uiState, viewModel::onSearchTextChanged, viewModel::searchMovies)
                 MainContent(uiState, viewModel::loadMovies)
             }
         }
@@ -98,7 +98,8 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
 @Composable
 fun Header(
     uiState: HomeState,
-    onSearchTextChanged: (String) -> Unit
+    onSearchTextChanged: (String) -> Unit,
+    onSearchClick: () -> Unit,
 ) {
     Column(){
         Row(
@@ -136,6 +137,7 @@ fun Header(
             modifier = Modifier.padding(horizontal = 30.dp),
             value = uiState.textSearchField,
             onValueChange = onSearchTextChanged,
+            onSearch = onSearchClick,
         )
     }
 }
@@ -165,7 +167,7 @@ fun MainContent(uiState: HomeState, loadMovies: (String) -> Unit) {
                     contentPadding = PaddingValues(start = 30.dp, end = 30.dp),
                 ) {
                     itemsIndexed(rowMovies.movies) { index, movie ->
-                        if (index >= rowMovies.movies.lastIndex && !uiState.isLoading) {
+                        if (index >= rowMovies.movies.lastIndex && !uiState.isLoading && rowMovies.hasNextPage) {
                             loadMovies(rowMovies.title)
                         }
                         Box(

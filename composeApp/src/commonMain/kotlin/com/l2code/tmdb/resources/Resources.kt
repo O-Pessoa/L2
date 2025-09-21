@@ -13,6 +13,8 @@ internal object Resources {
         const val RESOURCE_POPULAR_MOVIES = "Filmes populares"
         const val RESOURCE_TOP_RATED_MOVIES = "Melhor avaliados"
         const val RESOURCE_UPCOMING_MOVIES = "Próximos lançamentos"
+
+        const val RESOURCE_SEARCH_MOVIES = "Resultados da busca"
     }
 
     object Defaults {

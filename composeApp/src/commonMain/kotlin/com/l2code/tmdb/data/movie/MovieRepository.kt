@@ -8,6 +8,7 @@ interface MovieRepository {
     suspend fun popularMovies(filters: MovieListFilters): Pageable<Movie>
     suspend fun topRatedMovies(filters: MovieListFilters): Pageable<Movie>
     suspend fun upcomingMovies(filters: MovieListFilters): Pageable<Movie>
+    suspend fun searchMovies(filters: MovieListFilters): Pageable<Movie>
 }
 
 class MovieRepositoryImpl(private val service: MovieService) : MovieRepository {
@@ -25,5 +26,9 @@ class MovieRepositoryImpl(private val service: MovieService) : MovieRepository {
 
     override suspend fun upcomingMovies(filters: MovieListFilters): Pageable<Movie> {
         return service.getUpcomingMovies(filters).map(MovieDto::toEntity)
+    }
+
+    override suspend fun searchMovies(filters: MovieListFilters): Pageable<Movie> {
+        return service.getSearchMovies(filters).map(MovieDto::toEntity)
     }
 }
