@@ -3,9 +3,11 @@ package com.l2code.tmdb.presentation.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -73,11 +76,15 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
                     )
             )
             Column(
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier.padding(
+                    top = innerPadding.calculateTopPadding(),
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+                ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Header(uiState, viewModel::onSearchTextChanged)
-                MainContent(uiState)
+                MainContent(uiState, viewModel::loadMovies)
             }
         }
     }
@@ -118,31 +125,51 @@ fun Header(
 }
 
 @Composable
-fun MainContent(uiState: HomeState) {
-    Box(
+fun MainContent(uiState: HomeState, loadMovies: (String) -> Unit) {
+    val scrollState = rememberScrollState()
+    Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .verticalScroll(scrollState),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(start = 30.dp, end = 30.dp),
-        ) {
-            items(uiState.movies) { movie ->
-                Box(
-                    modifier = Modifier
-                        .fillParentMaxWidth(1f/2.5f)
-                        .aspectRatio(2f / 3f)
-                        .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+        for (rowMovies in uiState.rowsMovies){
+            Column(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp),
+                    text = rowMovies.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(start = 30.dp, end = 30.dp),
                 ) {
-                    AsyncImage(
-                        modifier = Modifier.fillMaxSize(),
-                        model = movie.posterPath,
-                        contentDescription = movie.title,
-                        contentScale = ContentScale.Crop,
-                    )
+                    itemsIndexed(rowMovies.movies) { index, movie ->
+                        if (index >= rowMovies.movies.lastIndex && !uiState.isLoading) {
+                            loadMovies(rowMovies.title)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxWidth(1f/2.5f)
+                                .aspectRatio(2f / 3f)
+                                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                        ) {
+                            AsyncImage(
+                                modifier = Modifier.fillMaxSize(),
+                                model = movie.posterPath,
+                                contentDescription = movie.title,
+                                contentScale = ContentScale.Crop,
+                            )
+                        }
+                    }
                 }
             }
         }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

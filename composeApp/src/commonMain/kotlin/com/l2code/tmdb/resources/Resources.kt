@@ -10,6 +10,9 @@ internal object Resources {
         const val ERROR_UNKNOWN = "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
 
         const val RESOURCE_NOW_PLAYING_MOVIES = "Filmes em exibição"
+        const val RESOURCE_POPULAR_MOVIES = "Filmes populares"
+        const val RESOURCE_TOP_RATED_MOVIES = "Melhor avaliados"
+        const val RESOURCE_UPCOMING_MOVIES = "Próximos lançamentos"
     }
 
     object Defaults {

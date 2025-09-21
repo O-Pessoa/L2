@@ -13,14 +13,37 @@ data class MovieListFilters(
 
 interface MovieService {
     suspend fun getNowPlayingMovies(filters: MovieListFilters): Pageable<MovieDto>
+    suspend fun getPopularMovies(filters: MovieListFilters): Pageable<MovieDto>
+    suspend fun getTopRatedMovies(filters: MovieListFilters): Pageable<MovieDto>
+    suspend fun getUpcomingMovies(filters: MovieListFilters): Pageable<MovieDto>
 }
 
 class MovieServiceImpl(private val client: HttpClient) : MovieService {
     override suspend fun getNowPlayingMovies(filters: MovieListFilters): Pageable<MovieDto> {
-        val response: Pageable<MovieDto> = client.get(urlString = "movie/now_playing"){
+        return client.get(urlString = "movie/now_playing"){
             parameter("language", filters.language)
             parameter("page", filters.page)
         }.body()
-        return response
+    }
+
+    override suspend fun getPopularMovies(filters: MovieListFilters): Pageable<MovieDto> {
+        return client.get(urlString = "movie/popular"){
+            parameter("language", filters.language)
+            parameter("page", filters.page)
+        }.body()
+    }
+
+    override suspend fun getTopRatedMovies(filters: MovieListFilters): Pageable<MovieDto> {
+        return client.get(urlString = "movie/top_rated"){
+            parameter("language", filters.language)
+            parameter("page", filters.page)
+        }.body()
+    }
+
+    override suspend fun getUpcomingMovies(filters: MovieListFilters): Pageable<MovieDto> {
+        return client.get(urlString = "movie/upcoming"){
+            parameter("language", filters.language)
+            parameter("page", filters.page)
+        }.body()
     }
 }

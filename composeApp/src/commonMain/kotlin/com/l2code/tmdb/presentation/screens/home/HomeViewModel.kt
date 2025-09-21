@@ -2,6 +2,7 @@ package com.l2code.tmdb.presentation.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.l2code.tmdb.data.Pageable
 import com.l2code.tmdb.data.movie.MovieListFilters
 import com.l2code.tmdb.data.movie.MovieRepository
 import com.l2code.tmdb.entities.Movie
@@ -12,13 +13,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+data class RowMovies(
+    val title: String,
+    val movies: List<Movie> = emptyList(),
+    val page: Int = 0,
+    val hasNextPage: Boolean = false,
+    val load: suspend (filters: MovieListFilters) -> Pageable<Movie>
+)
+
 data class HomeState(
     val isLoading: Boolean = false,
     val catalogResult: CatalogResult? = null,
     val textSearchField: String = "",
-    val movies: List<Movie> = emptyList(),
-    val page: Int = 0,
-    val hasNextPage: Boolean = false,
+    val rowsMovies: List<RowMovies> = emptyList(),
 )
 
 sealed class CatalogResult(val message: String?) {
@@ -31,27 +38,66 @@ sealed class CatalogResult(val message: String?) {
 
 class HomeViewModel(
     private val movieRepository: MovieRepository,
-): ViewModel() {
+) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeState())
     val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update {
+            it.copy(
+                rowsMovies = listOf(
+                    RowMovies(
+                        title = Resources.Strings.RESOURCE_NOW_PLAYING_MOVIES,
+                        load = movieRepository::nowPlayingMovies
+                    ),
+                    RowMovies(
+                        title = Resources.Strings.RESOURCE_POPULAR_MOVIES,
+                        load = movieRepository::popularMovies
+                    ),
+                    RowMovies(
+                        title = Resources.Strings.RESOURCE_TOP_RATED_MOVIES,
+                        load = movieRepository::topRatedMovies
+                    ),
+                    RowMovies(
+                        title = Resources.Strings.RESOURCE_UPCOMING_MOVIES,
+                        load = movieRepository::upcomingMovies
+                    ),
+                ),
+            )
+        }
+
         loadMovies()
     }
 
-    private fun loadMovies() {
+    private suspend fun loadRowMovies(rowMovies: RowMovies) {
+        val newMovies = rowMovies.load(MovieListFilters(page = rowMovies.page + 1))
+        _uiState.update {
+            it.copy(
+                rowsMovies = it.rowsMovies.map { row ->
+                    if (row == rowMovies) {
+                        return@map row.copy(
+                            movies = row.movies + newMovies.results,
+                            page = newMovies.page,
+                            hasNextPage = newMovies.page < newMovies.totalPages
+                        )
+                    }
+                    return@map row
+                },
+                isLoading = false,
+                catalogResult = CatalogResult.Success()
+            )
+        }
+    }
+
+    fun loadMovies(title: String? = null) {
+        if (_uiState.value.isLoading) return
         this.viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val result = movieRepository.nowPlayingMovies(MovieListFilters(page = _uiState.value.page + 1))
-                _uiState.update {
-                    it.copy(
-                        page = result.page,
-                        hasNextPage = result.page < result.totalPages,
-                        movies = result.results,
-                        catalogResult = CatalogResult.Success(),
-                        isLoading = false,
-                    )
+                for (rowMovies in _uiState.value.rowsMovies) {
+                    if (title == null || rowMovies.title == title) {
+                        loadRowMovies(rowMovies)
+                    }
                 }
             } catch (_: Exception) {
                 _uiState.update {
