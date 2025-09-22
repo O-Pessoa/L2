@@ -240,7 +240,9 @@ private fun LazyItemScope.MovieCard(
             .clickable { expanded = true }
     ) {
         AsyncImage(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp)),
             model = movie.posterPath,
             contentDescription = movie.title,
             contentScale = ContentScale.Crop,
