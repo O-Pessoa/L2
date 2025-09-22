@@ -1,4 +1,5 @@
 Veja a [referência do protótipo](https://www.figma.com/design/ELUBYKpQZgFrTgWcNKdFGM/TMDB--Community-?node-id=1-2&t=DRxND4WKew7GLdd1-0) para mais detalhes.
+
 This is a Kotlin Multiplatform project targeting Android, iOS.
 
 * [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
