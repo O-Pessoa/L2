@@ -18,36 +18,41 @@ class MovieRepositoryImpl(
 
     override suspend fun nowPlayingMovies(filters: MovieListFilters): Pageable<Movie> {
         val favorites = preferencesService.getFavorites()
+        val watchlist = preferencesService.getWatchlist()
         return service.getNowPlayingMovies(filters).map {
-            it.toEntity(favorites.contains(it))
+            it.toEntity(favorites.contains(it), watchlist.contains(it))
         }
     }
 
     override suspend fun popularMovies(filters: MovieListFilters): Pageable<Movie> {
         val favorites = preferencesService.getFavorites()
+        val watchlist = preferencesService.getWatchlist()
         return service.getPopularMovies(filters).map {
-            it.toEntity(favorites.contains(it))
+            it.toEntity(favorites.contains(it), watchlist.contains(it))
         }
     }
 
     override suspend fun topRatedMovies(filters: MovieListFilters): Pageable<Movie> {
         val favorites = preferencesService.getFavorites()
+        val watchlist = preferencesService.getWatchlist()
         return service.getTopRatedMovies(filters).map {
-            it.toEntity(favorites.contains(it))
+            it.toEntity(favorites.contains(it), watchlist.contains(it))
         }
     }
 
     override suspend fun upcomingMovies(filters: MovieListFilters): Pageable<Movie> {
         val favorites = preferencesService.getFavorites()
+        val watchlist = preferencesService.getWatchlist()
         return service.getUpcomingMovies(filters).map {
-            it.toEntity(favorites.contains(it))
+            it.toEntity(favorites.contains(it), watchlist.contains(it))
         }
     }
 
     override suspend fun searchMovies(filters: MovieListFilters): Pageable<Movie> {
         val favorites = preferencesService.getFavorites()
+        val watchlist = preferencesService.getWatchlist()
         return service.getSearchMovies(filters).map {
-            it.toEntity(favorites.contains(it))
+            it.toEntity(favorites.contains(it), watchlist.contains(it))
         }
     }
 }

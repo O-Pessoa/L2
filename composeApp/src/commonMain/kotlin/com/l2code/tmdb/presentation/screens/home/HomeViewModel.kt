@@ -50,6 +50,10 @@ class HomeViewModel(
             it.copy(
                 rowsMovies = listOf(
                     RowMovies(
+                        title = Resources.Strings.RESOURCE_WATCHLIST_MOVIES,
+                        load = this::getWatchList
+                    ),
+                    RowMovies(
                         title = Resources.Strings.RESOURCE_FAVORITES_MOVIES,
                         load = this::getFavorites
                     ),
@@ -131,6 +135,16 @@ class HomeViewModel(
         )
     }
 
+    suspend fun getWatchList(filters: MovieListFilters?): Pageable<Movie> {
+        val movies = preferencesRepository.getWatchlist()
+        return Pageable<Movie>(
+            page = 1,
+            totalPages = 1,
+            totalResults = movies.size,
+            results = movies
+        )
+    }
+
     fun searchMovies() {
         val oldSearchMovies = _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_SEARCH_MOVIES }
         if (oldSearchMovies != null) {
@@ -187,6 +201,28 @@ class HomeViewModel(
                 _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_FAVORITES_MOVIES }
             if (favoritesRow != null) {
                 loadRowMovies(favoritesRow, true)
+            }
+        }
+    }
+
+    fun addWatchlist(movie: Movie) {
+        viewModelScope.launch {
+            preferencesRepository.addToWatchlist(movie)
+            val watchlistRow =
+                _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_WATCHLIST_MOVIES }
+            if (watchlistRow != null) {
+                loadRowMovies(watchlistRow, true)
+            }
+        }
+    }
+
+    fun removeWatchlist(movie: Movie) {
+        viewModelScope.launch {
+            preferencesRepository.removeFromWatchlist(movie)
+            val watchlistRow =
+                _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_WATCHLIST_MOVIES }
+            if (watchlistRow != null) {
+                loadRowMovies(watchlistRow, true)
             }
         }
     }

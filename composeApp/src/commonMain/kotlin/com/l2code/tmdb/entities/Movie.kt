@@ -19,6 +19,7 @@ class Movie(
     val voteAverage: Double,
     val voteCount: Int,
     val isFavorite: Boolean,
+    val isInWatchlist: Boolean,
 ) {
     val backdropPath: String = formatImage(backdropPath)
     val posterPath: String = formatImage(posterPath)

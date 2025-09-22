@@ -94,7 +94,9 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
                     uiState,
                     viewModel::loadRowMovies,
                     viewModel::addFavorite,
-                    viewModel::removeFavorite
+                    viewModel::removeFavorite,
+                    viewModel::addWatchlist,
+                    viewModel::removeWatchlist,
                 )
             }
         }
@@ -153,7 +155,9 @@ private fun MainContent(
     uiState: HomeState,
     loadMovies: (RowMovies) -> Unit,
     addFavorite: (Movie) -> Unit,
-    removeFavorite: (Movie) -> Unit
+    removeFavorite: (Movie) -> Unit,
+    addWatchlist: (Movie) -> Unit,
+    removeWatchlist: (Movie) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -197,7 +201,9 @@ private fun MainContent(
                                 MovieCard(
                                     movie,
                                     addFavorite = { addFavorite(movie) },
-                                    removeFavorite = { removeFavorite(movie) }
+                                    removeFavorite = { removeFavorite(movie) },
+                                    addWatchlist = { addWatchlist(movie) },
+                                    removeWatchlist = { removeWatchlist(movie) }
                                 )
                             }
                         }
@@ -222,6 +228,8 @@ private fun LazyItemScope.MovieCard(
     movie: Movie,
     addFavorite: () -> Unit,
     removeFavorite: () -> Unit,
+    addWatchlist: () -> Unit,
+    removeWatchlist: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(
@@ -241,7 +249,7 @@ private fun LazyItemScope.MovieCard(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            if(movie.isFavorite) {
+            if (movie.isFavorite) {
                 DropdownMenuItem(
                     onClick = {
                         expanded = false
@@ -263,12 +271,27 @@ private fun LazyItemScope.MovieCard(
                 )
             }
 
-            DropdownMenuItem(
-                onClick = { expanded = false },
-                text = {
-                    Text(Resources.Strings.HOME_SEE_LATER_ACTION, style = MaterialTheme.typography.labelSmall)
-                }
-            )
+            if(movie.isInWatchlist){
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        removeWatchlist()
+                    },
+                    text = {
+                        Text(Resources.Strings.HOME_RM_WATCHLIST_ACTION, style = MaterialTheme.typography.labelSmall)
+                    }
+                )
+            } else {
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        addWatchlist()
+                    },
+                    text = {
+                        Text(Resources.Strings.HOME_ADD_WATCHLIST_ACTION, style = MaterialTheme.typography.labelSmall)
+                    }
+                )
+            }
         }
     }
 }

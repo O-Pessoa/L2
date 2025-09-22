@@ -21,7 +21,7 @@ data class MovieDto(
     val vote_count: Int,
 ) {
 
-    fun toEntity(isFavorite: Boolean) = Movie(
+    fun toEntity(isFavorite: Boolean, isInWatchlist: Boolean,) = Movie(
         this.adult,
         this.backdrop_path ?: "/",
         this.genre_ids,
@@ -36,6 +36,7 @@ data class MovieDto(
         this.video,
         this.vote_average,
         this.vote_count,
-        isFavorite
+        isFavorite,
+        isInWatchlist
     )
 }
