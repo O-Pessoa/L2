@@ -11,24 +11,43 @@ interface MovieRepository {
     suspend fun searchMovies(filters: MovieListFilters): Pageable<Movie>
 }
 
-class MovieRepositoryImpl(private val service: MovieService) : MovieRepository {
+class MovieRepositoryImpl(
+    private val service: MovieService,
+    private val preferencesService: PreferencesService
+) : MovieRepository {
+
     override suspend fun nowPlayingMovies(filters: MovieListFilters): Pageable<Movie> {
-        return service.getNowPlayingMovies(filters).map(MovieDto::toEntity)
+        val favorites = preferencesService.getFavorites()
+        return service.getNowPlayingMovies(filters).map {
+            it.toEntity(favorites.contains(it))
+        }
     }
 
     override suspend fun popularMovies(filters: MovieListFilters): Pageable<Movie> {
-        return service.getPopularMovies(filters).map(MovieDto::toEntity)
+        val favorites = preferencesService.getFavorites()
+        return service.getPopularMovies(filters).map {
+            it.toEntity(favorites.contains(it))
+        }
     }
 
     override suspend fun topRatedMovies(filters: MovieListFilters): Pageable<Movie> {
-        return service.getTopRatedMovies(filters).map(MovieDto::toEntity)
+        val favorites = preferencesService.getFavorites()
+        return service.getTopRatedMovies(filters).map {
+            it.toEntity(favorites.contains(it))
+        }
     }
 
     override suspend fun upcomingMovies(filters: MovieListFilters): Pageable<Movie> {
-        return service.getUpcomingMovies(filters).map(MovieDto::toEntity)
+        val favorites = preferencesService.getFavorites()
+        return service.getUpcomingMovies(filters).map {
+            it.toEntity(favorites.contains(it))
+        }
     }
 
     override suspend fun searchMovies(filters: MovieListFilters): Pageable<Movie> {
-        return service.getSearchMovies(filters).map(MovieDto::toEntity)
+        val favorites = preferencesService.getFavorites()
+        return service.getSearchMovies(filters).map {
+            it.toEntity(favorites.contains(it))
+        }
     }
 }

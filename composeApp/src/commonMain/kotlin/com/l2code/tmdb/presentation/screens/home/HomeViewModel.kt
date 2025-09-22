@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.l2code.tmdb.data.Pageable
 import com.l2code.tmdb.data.movie.MovieListFilters
 import com.l2code.tmdb.data.movie.MovieRepository
+import com.l2code.tmdb.data.movie.PreferencesRepository
 import com.l2code.tmdb.entities.Movie
 import com.l2code.tmdb.resources.Resources
 import kotlinx.coroutines.delay
@@ -39,6 +40,7 @@ sealed class CatalogResult(val message: String?) {
 
 class HomeViewModel(
     private val movieRepository: MovieRepository,
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeState())
     val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
@@ -47,6 +49,10 @@ class HomeViewModel(
         _uiState.update {
             it.copy(
                 rowsMovies = listOf(
+                    RowMovies(
+                        title = Resources.Strings.RESOURCE_FAVORITES_MOVIES,
+                        load = this::getFavorites
+                    ),
                     RowMovies(
                         title = Resources.Strings.RESOURCE_NOW_PLAYING_MOVIES,
                         load = movieRepository::nowPlayingMovies
@@ -70,8 +76,8 @@ class HomeViewModel(
         loadMovies()
     }
 
-    fun loadRowMovies(rowMovies: RowMovies) {
-        if (rowMovies.movies.isNotEmpty() && !rowMovies.hasNextPage) return
+    fun loadRowMovies(rowMovies: RowMovies, isRefresh: Boolean = false) {
+        if (rowMovies.movies.isNotEmpty() && !rowMovies.hasNextPage && !isRefresh) return
         this.viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -88,7 +94,7 @@ class HomeViewModel(
                         rowsMovies = it.rowsMovies.map { row ->
                             if (row == rowMovies) {
                                 return@map row.copy(
-                                    movies = row.movies + newMovies.results,
+                                    movies = if(isRefresh) newMovies.results else row.movies + newMovies.results,
                                     page = newMovies.page,
                                     hasNextPage = newMovies.page < newMovies.totalPages
                                 )
@@ -115,9 +121,19 @@ class HomeViewModel(
         }
     }
 
+    suspend fun getFavorites(filters: MovieListFilters?): Pageable<Movie> {
+        val movies = preferencesRepository.getFavorites()
+        return Pageable<Movie>(
+            page = 1,
+            totalPages = 1,
+            totalResults = movies.size,
+            results = movies
+        )
+    }
+
     fun searchMovies() {
         val oldSearchMovies = _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_SEARCH_MOVIES }
-        if(oldSearchMovies != null) {
+        if (oldSearchMovies != null) {
             _uiState.update { state ->
                 state.copy(
                     rowsMovies = state.rowsMovies.filter { oldSearchMovies.title != it.title }
@@ -137,7 +153,7 @@ class HomeViewModel(
             )
         }
         val rowMovies = _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_SEARCH_MOVIES }
-        if(rowMovies == null) return
+        if (rowMovies == null) return
         this.viewModelScope.launch {
             val exitAnimationDuration = 300L
             delay(exitAnimationDuration)
@@ -151,5 +167,27 @@ class HomeViewModel(
 
     fun onSearchTextChanged(newText: String) {
         this._uiState.update { it.copy(textSearchField = newText) }
+    }
+
+    fun addFavorite(movie: Movie) {
+        viewModelScope.launch {
+            preferencesRepository.addFavorite(movie)
+            val favoritesRow =
+                _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_FAVORITES_MOVIES }
+            if (favoritesRow != null) {
+                loadRowMovies(favoritesRow, true)
+            }
+        }
+    }
+
+    fun removeFavorite(movie: Movie) {
+        viewModelScope.launch {
+            preferencesRepository.removeFavorite(movie)
+            val favoritesRow =
+                _uiState.value.rowsMovies.find { it.title == Resources.Strings.RESOURCE_FAVORITES_MOVIES }
+            if (favoritesRow != null) {
+                loadRowMovies(favoritesRow, true)
+            }
+        }
     }
 }

@@ -1,25 +1,16 @@
 package com.l2code.tmdb.presentation.screens.home
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
+import com.l2code.tmdb.entities.Movie
 import com.l2code.tmdb.presentation.components.SearchTextField
 import com.l2code.tmdb.resources.Resources
 import org.jetbrains.compose.resources.painterResource
@@ -98,14 +90,19 @@ fun HomeScreen(navController: NavController = rememberNavController(), viewModel
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Header(uiState, viewModel::onSearchTextChanged, viewModel::searchMovies)
-                MainContent(uiState, viewModel::loadRowMovies)
+                MainContent(
+                    uiState,
+                    viewModel::loadRowMovies,
+                    viewModel::addFavorite,
+                    viewModel::removeFavorite
+                )
             }
         }
     }
 }
 
 @Composable
-fun Header(
+private fun Header(
     uiState: HomeState,
     onSearchTextChanged: (String) -> Unit,
     onSearchClick: () -> Unit,
@@ -152,7 +149,12 @@ fun Header(
 }
 
 @Composable
-fun MainContent(uiState: HomeState, loadMovies: (RowMovies) -> Unit) {
+private fun MainContent(
+    uiState: HomeState,
+    loadMovies: (RowMovies) -> Unit,
+    addFavorite: (Movie) -> Unit,
+    removeFavorite: (Movie) -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -192,19 +194,11 @@ fun MainContent(uiState: HomeState, loadMovies: (RowMovies) -> Unit) {
                                 if (index >= rowMovies.movies.lastIndex - 10 && !uiState.isLoading && rowMovies.hasNextPage) {
                                     loadMovies(rowMovies)
                                 }
-                                Box(
-                                    modifier = Modifier
-                                        .fillParentMaxWidth(1f / 2.5f)
-                                        .aspectRatio(2f / 3f)
-                                        .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                                ) {
-                                    AsyncImage(
-                                        modifier = Modifier.fillMaxSize(),
-                                        model = movie.posterPath,
-                                        contentDescription = movie.title,
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                }
+                                MovieCard(
+                                    movie,
+                                    addFavorite = { addFavorite(movie) },
+                                    removeFavorite = { removeFavorite(movie) }
+                                )
                             }
                         }
                         if (uiState.isLoading && rowMovies.movies.isEmpty()) {
@@ -220,6 +214,62 @@ fun MainContent(uiState: HomeState, loadMovies: (RowMovies) -> Unit) {
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+private fun LazyItemScope.MovieCard(
+    movie: Movie,
+    addFavorite: () -> Unit,
+    removeFavorite: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillParentMaxWidth(1f / 2.5f)
+            .aspectRatio(2f / 3f)
+            .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+            .clickable { expanded = true }
+    ) {
+        AsyncImage(
+            modifier = Modifier.fillMaxSize(),
+            model = movie.posterPath,
+            contentDescription = movie.title,
+            contentScale = ContentScale.Crop,
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            if(movie.isFavorite) {
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        removeFavorite()
+                    },
+                    text = {
+                        Text(Resources.Strings.HOME_RM_FAVORITE_ACTION, style = MaterialTheme.typography.labelSmall)
+                    }
+                )
+            } else {
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        addFavorite()
+                    },
+                    text = {
+                        Text(Resources.Strings.HOME_ADD_FAVORITE_ACTION, style = MaterialTheme.typography.labelSmall)
+                    }
+                )
+            }
+
+            DropdownMenuItem(
+                onClick = { expanded = false },
+                text = {
+                    Text(Resources.Strings.HOME_SEE_LATER_ACTION, style = MaterialTheme.typography.labelSmall)
+                }
+            )
+        }
     }
 }
 

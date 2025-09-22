@@ -33,6 +33,8 @@ kotlin {
             implementation(libs.kermit)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
+            implementation(libs.datastore)
+            implementation(libs.datastore.preferences)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
